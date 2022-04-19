@@ -1,11 +1,12 @@
 package com.example.android.customfancontroller
 
 import android.content.Context
-import android.graphics.Paint
-import android.graphics.PointF
-import android.graphics.Typeface
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 
 private const val RADIUS_OFFSET_LABEL = 30
 private const val RADIUS_OFFSET_INDICATOR = -35
@@ -31,5 +32,35 @@ class DialView @JvmOverloads constructor(
         textAlign = Paint.Align.CENTER
         textSize = 55.0f
         typeface = Typeface.create("", Typeface.BOLD)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        radius = ((min(w, h) / 2.0) * 0.8).toFloat()
+    }
+
+    private fun PointF.computeXYForSpeed(pos: FanSpeed, radius: Float) {
+        val startAngle = Math.PI * (9 / 8.0)
+        val angel = startAngle + (pos.ordinal * (Math.PI / 4.0))
+        x = (radius * cos(angel)).toFloat() + width / 2
+        y = (radius * sin(angel)).toFloat() + height / 2
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        paint.color = if (fanSpeed == FanSpeed.OFF) Color.GRAY else Color.GREEN
+        canvas?.drawCircle(width/2.0f, height/2.0f, radius, paint)
+
+        val markerRadius = radius + RADIUS_OFFSET_INDICATOR
+        pointPosition.computeXYForSpeed(fanSpeed, markerRadius)
+        paint.color = Color.BLACK
+        canvas?.drawCircle(pointPosition.x, pointPosition.y, radius/12, paint)
+
+        val labelRadius = radius + RADIUS_OFFSET_LABEL
+        for (i in FanSpeed.values()) {
+            pointPosition.computeXYForSpeed(i, labelRadius)
+            val label = resources.getString(i.label)
+            canvas?.drawText(label, pointPosition.x, pointPosition.y, paint)
+        }
     }
 }
