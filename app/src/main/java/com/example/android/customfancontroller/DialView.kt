@@ -15,7 +15,14 @@ private enum class FanSpeed(val label: Int) {
     OFF(R.string.fan_off),
     LOW(R.string.fan_low),
     MEDIUM(R.string.fan_medium),
-    HIGH(R.string.fan_high)
+    HIGH(R.string.fan_high);
+
+    fun next() = when (this) {
+        OFF -> LOW
+        LOW -> MEDIUM
+        MEDIUM -> HIGH
+        HIGH -> OFF
+    }
 }
 
 class DialView @JvmOverloads constructor(
@@ -32,6 +39,19 @@ class DialView @JvmOverloads constructor(
         textAlign = Paint.Align.CENTER
         textSize = 55.0f
         typeface = Typeface.create("", Typeface.BOLD)
+    }
+
+    init {
+        isClickable = true
+    }
+
+    override fun performClick(): Boolean {
+        if (super.performClick()) return true
+        fanSpeed = fanSpeed.next()
+        contentDescription = resources.getString(fanSpeed.label)
+
+        invalidate()
+        return true
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
